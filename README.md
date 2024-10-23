@@ -1,4 +1,4 @@
-# ASCII Engine
+# ASCII Engine Demo V2.4
 
 ASCII Engine je moderní textový herní engine napsaný v Pythonu, který umožňuje vytvářet CMD hry pro Windows. Tento engine je navržen tak, aby byl snadno použitelný a přizpůsobitelný, ideální pro vývoj jednoduchých her.
 
