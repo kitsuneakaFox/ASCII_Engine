@@ -26,10 +26,6 @@ Po spuštění engine se otevře okno, kde můžete začít vytvářet své hry.
 
 Tento projekt je licencován pod licencí uvedenou v souboru `LICENSE`.
 
-## Kontakt
-
-Pokud máte otázky nebo návrhy, neváhejte nás kontaktovat na [email@example.com].
-
 ## Přispění
 
 Přispění jsou vítána! Pokud chcete přispět k projektu, vytvořte pull request nebo nám napište.
