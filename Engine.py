@@ -60,7 +60,7 @@ class ASCIIEngine:
         # Game Menu
         game_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Hra", menu=game_menu)
-        game_menu.add_command(label="Zobrazit nápovědu", command=self.zobrazit_napovedu, accelerator="Ctrl+H")
+        game_menu.add_command(label="Editor map", command=self.editor_map)
 
         # Build Menu
         build_menu = tk.Menu(menubar, tearoff=0)
@@ -103,9 +103,7 @@ class ASCIIEngine:
         self.root.bind("<Control-n>", lambda event: self.novy_projekt())
         self.root.bind("<Control-s>", lambda event: self.ulozit_jako())
         self.root.bind("<Control-o>", lambda event: self.otevrit())
-        self.root.bind("<Control-q>", lambda event: self.root.quit())
         self.root.bind("<Control-h>", lambda event: self.zobrazit_napovedu())
-        self.root.bind("<Control-r>", lambda event: self.zestavit_a_pustit())
 
     def load_settings(self):
         save_folder = "Save"
@@ -201,6 +199,21 @@ class ASCIIEngine:
             self.save_settings()
 
     def zobrazit_manual(self):
+         # Vytvoření nového okna pro manuál
+        manual_window = tk.Toplevel(self.root)
+        manual_window.title("Manuál - ASCII Engine")
+        manual_window.geometry("619x769")  # Nastavení velikosti okna
+
+        # Přidání textového widgetu pro obsah manuálu
+        manual_text = tk.Text(manual_window, wrap=tk.WORD, bg="white", fg="black", font=("Courier New", 12))
+        manual_text.pack(expand=True, fill=tk.BOTH)
+
+        # Přidání posuvníku
+        scrollbar = tk.Scrollbar(manual_window, command=manual_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        manual_text.config(yscrollcommand=scrollbar.set)
+
+        # Obsah manuálu
         manual_content = (
             "ASCII Engine - Manuál\n"
             "-------------------------------\n"
@@ -208,9 +221,9 @@ class ASCIIEngine:
             "ASCII Engine je aplikace určená pro vývoj textových her v prostředí CMD.\n"
             "\n"
             "Funkce:\n"
-            "- Tvorba textových her s moderním uživatelským rozhraním\n"
-            "- Podpora pro vlastní skripty\n"
-            "- Možnost přizpůsobení barev a textových formátů\n"
+            "- Tvorba textových her s moderním uživatelským rozhraním.\n"
+            "- Podpora pro vlastní skripty.\n"
+            "- Možnost přizpůsobení barev a textových formátů.\n"
             "\n"
             "Použití:\n"
             "1. Vytvořte nový projekt pomocí 'Nový projekt' v menu Soubory.\n"
@@ -238,7 +251,12 @@ class ASCIIEngine:
             "Pokud potřebujete pomoc, kontaktujte nás na Gamejolt.\n"
             "-------------------------------\n"
         )
-        messagebox.showinfo("Manuál", manual_content)
+
+        # Vložení obsahu do textového widgetu
+        manual_text.insert(tk.END, manual_content)
+
+        # Zamezení editaci textu
+        manual_text.config(state=tk.DISABLED)
 
     def zbarvit_text(self, event=None):
         # Vyčistit předchozí tagy
@@ -423,6 +441,118 @@ Složky, které budou vytvořeny pro tuto hru, zahrnují:
             subprocess.Popen(f'explorer {game_folder}')  # Open the folder in Windows Explorer
             messagebox.showinfo("Úspěch", f"Složka {game_folder} byla úspěšně vytvořena.")
 
+    def editor_map(self):
+        # Otevře okno pro editor map
+        editor_window = tk.Toplevel(self.root)
+        editor_window.title("Editor map")
+
+        # Nastavení barevného schématu
+        editor_window.configure(bg="#f0f0f0")
+
+        # Vytvoří textovou oblast pro mapový editor
+        editor_text = tk.Text(editor_window, wrap="none", width=80, height=25, bg="#ffffff", fg="#000000", font=("Arial", 12))
+        editor_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Přidá posuvníky pro vertikální a horizontální posouvání
+        v_scroll = tk.Scrollbar(editor_window, orient=tk.VERTICAL, command=editor_text.yview)
+        v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        editor_text.config(yscrollcommand=v_scroll.set)
+
+        h_scroll = tk.Scrollbar(editor_window, orient=tk.HORIZONTAL, command=editor_text.xview)
+        h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
+        editor_text.config(xscrollcommand=h_scroll.set)
+
+        # Přidání základního menu do editoru
+        menu_bar = tk.Menu(editor_window)
+        editor_window.config(menu=menu_bar)
+
+        # Menu "Soubor"
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Soubor", menu=file_menu)
+        file_menu.add_command(label="Nový", command=lambda: editor_text.delete("1.0", tk.END))
+        file_menu.add_command(label="Otevřít", command=self.open_map_file)
+        file_menu.add_command(label="Uložit", command=lambda: self.save_map_file(editor_text))
+        file_menu.add_separator()
+        file_menu.add_command(label="Zavřít", command=editor_window.destroy)
+
+        # Menu "Nápověda"
+        help_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Nápověda", menu=help_menu)
+        help_menu.add_command(label="Jak používat editor", command=self.show_map_help)
+
+        # Přidání formátovacích tlačítek
+        format_frame = tk.Frame(editor_window, bg="#f0f0f0")
+        format_frame.pack(side=tk.TOP, fill=tk.X)
+
+        bold_button = tk.Button(format_frame, text="Tučné", command=lambda: self.toggle_bold(editor_text))
+        bold_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        italic_button = tk.Button(format_frame, text="Kurzíva", command=lambda: self.toggle_italic(editor_text))
+        italic_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        color_button = tk.Button(format_frame, text="Barva textu", command=lambda: self.change_text_color(editor_text))
+        color_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+    def show_map_help(self):
+        # Pomocná funkce pro zobrazení nápovědy
+        help_text = (
+            "Nápověda pro editor map:\n\n"
+            "1. Vytvořte nový dokument kliknutím na 'Nový'.\n"
+            "2. Otevřete existující mapu kliknutím na 'Otevřít'.\n"
+            "3. Uložte svou práci kliknutím na 'Uložit'.\n"
+            "4. Použijte tlačítka pro formátování textu:\n"
+            "   - 'Tučné': Zvýrazní vybraný text.\n"
+            "   - 'Kurzíva': Změní vybraný text na kurzívu.\n"
+            "   - 'Barva textu': Umožňuje změnit barvu vybraného textu.\n"
+            "5. Zde je příklad, jak může vaše mapa vypadat:\n\n"
+            "XXXXXOOO\n"
+            "XXXXOOOO\n"
+            "XOOOOWWW\n"
+            "XMMMMWWW\n"
+            "XWWWWWWW\n\n"
+            "6. Pokud potřebujete pomoc, znovu klikněte na 'Jak používat editor'."
+        )
+        messagebox.showinfo("Nápověda", help_text)
+
+    def toggle_bold(self, text_widget):
+        # Přepínání tučného písma
+        current_tags = text_widget.tag_names("sel.first")
+        if "bold" in current_tags:
+            text_widget.tag_remove("bold", "sel.first", "sel.last")
+        else:
+            text_widget.tag_add("bold", "sel.first", "sel.last")
+            text_widget.tag_configure("bold", font=("Arial", 12, "bold"))
+
+    def toggle_italic(self, text_widget):
+        # Přepínání kurzívy
+        current_tags = text_widget.tag_names("sel.first")
+        if "italic" in current_tags:
+            text_widget.tag_remove("italic", "sel.first", "sel.last")
+        else:
+            text_widget.tag_add("italic", "sel.first", "sel.last")
+            text_widget.tag_configure("italic", font=("Arial", 12, "italic"))
+
+    def change_text_color(self, text_widget):
+        # Změna barvy textu
+        color = colorchooser.askcolor()[1]
+        if color:
+            text_widget.tag_add("colored", "sel.first", "sel.last")
+            text_widget.tag_configure("colored", foreground=color)
+
+    def open_map_file(self):
+        file_path = filedialog.askopenfilename(title="Otevřít mapu", filetypes=[("Map Files", "*.map"), ("Textové soubory", "*.txt")])
+        if file_path:
+            with open(file_path, 'r') as file:
+                content = file.read()
+            messagebox.showinfo("Editor map", f"Mapa {file_path} byla úspěšně načtena.")
+            return content
+
+    def save_map_file(self, editor_text):
+        file_path = filedialog.asksaveasfilename(defaultextension=".map", filetypes=[("Map Files", "*.map"), ("Textové soubory", "*.txt")])
+        if file_path:
+            with open(file_path, 'w') as file:
+                file.write(editor_text.get("1.0", tk.END))
+            messagebox.showinfo("Editor map", f"Mapa byla úspěšně uložena do {file_path}.")
 
 if __name__ == "__main__":
     root = tk.Tk()
